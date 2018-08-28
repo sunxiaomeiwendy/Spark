@@ -1,0 +1,18 @@
+library(sparklyr)
+library(dplyr)
+sc<-spark_connect(method="databricks")
+src_tbls(sc)
+x<-tbl(sc,"XXXXX_csv")
+str(x)
+glimpse(x)  #If you want to see a summary of what each column contains in the dataset that the tibble refers to, you need to call glimpse()
+x %>% select(abc)%>%
+filter(def>0.2)
+distinct(opqrst, efghlm)
+y<-x %>% select (abc) %>% distinct()
+str(y)
+z<-collect(x) #To collect your data: that is, to move it from Spark to R, you call collect()
+str(z)
+##from datacamp##
+##Print the class of results, noting that it is a tbl_lazy (used for remote data).
+##Collect your results, assigning them to collected.
+##Print the class of collected, noting that it is a tbl_df (used for local data).
