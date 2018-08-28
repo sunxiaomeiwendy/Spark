@@ -1,0 +1,6 @@
+sc<- spark_connect(method="databricks")
+abcdef<-SparkR::read.parquest('/abc/def/jkl/mnq')
+SparkR::createOrReplaceTempView(abcdef,'something')
+efghihk_tbl<-tbl(sc,'something')
+#using SparkR to create a DataFrame, register as a temp view(persists for the life of the notebook), then read that temp view as a table with SparklyR
+#sparklyr methods sometimes are not stable.
