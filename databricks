@@ -16,3 +16,17 @@ str(z)
 ##Print the class of results, noting that it is a tbl_lazy (used for remote data).
 ##Collect your results, assigning them to collected.
 ##Print the class of collected, noting that it is a tbl_df (used for local data).
+#You need to store the results of intermediate calculations, but you don't want to collect them because it is slow. 
+#The solution is to use compute() to compute the calculation, but store the results in a temporary data frame on Spark. 
+#Compute takes two arguments: a tibble, and a variable name for the Spark data frame that will store the results.
+computed <- track_metadata_tbl %>%
+  # Filter where artist familiarity is greater than 0.8
+  filter(artist_familiarity>0.8) %>%
+  # Compute the results
+  compute("familiar_artists")
+
+# See the available datasets
+src_tbls(spark_conn)
+
+# Examine the class of the computed results
+class(computed)
