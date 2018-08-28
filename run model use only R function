@@ -1,0 +1,29 @@
+The way to do it is spark_apply
+use sparklyr to munge the (distributed) data frame to the proper format
+For example:
+#Do imputation in a spark_apply. Keep in mind that the imputation function can only "see" the data that is in its particular partition. For example, using the .full in na.interpolation option would not necessarily align indexes across partitions
+weather_imputed_tbl <- weather_subset_tbl %>%
+  spark_apply(
+    function(x) {
+      library(tsibble)
+      library(tidyverse)
+      library(imputeTS)
+      return(x %>%
+        as_tsibble(key = id(orig), index = time_hour) %>% #convert to tsibble in order to use fill.na, a tsibble verb
+        fill_na(.full = TRUE) %>%
+        mutate(precip = na.interpolation(precip),
+              temp = na.interpolation(temp, option = 'linear'),
+              humid = na.interpolation(humid, option = 'spline'),
+              random = na.kalman(random)) %>%
+        select(-orig) #Note that we must manually remove the grouping column, otherwise we get a cryptic duplicate columns error. Sometimes it works without this step, unclear why
+      ) #Tsibble subclasses tibble; we don't need to convert the return back to tibble
+    }, 
+    group_by = 'orig',
+    packages = FALSE
+  ) 
+#the dataframe is partitioned along the group_by column specified in spark_apply (I don't believe any prior groupings using the normal sparklyr group_by clause are respected)
+ packages should be false on databricks, because the databricks platform already pre-installed the libraries that you have assigned to the cluster on all the worker nodes
+ the function you define in the spark_apply is passed a dataframe corresponding to one partition (in this case, all rows for one value of the 'orig' column)
+ and is expected to return a dataframe
+ So you could write a function that fits your desired MARS model and returns a dataframe
+
